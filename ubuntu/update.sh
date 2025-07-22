@@ -42,8 +42,7 @@ function remove_lock() {
     rm -rf "$lock_1"
     rm -rf "$lock_2"
     rm -rf "$lock_3"
-    ## No need to remove lock 4 as it will not be set when calling checking_lock
-    ## A better way to unify remove_lock and check_lock should be possible.
+    rm -rf "$lock_4"
 }
 
 # trap ctrl-c and call ctrl_c()
@@ -72,18 +71,13 @@ checking_lock() {
         ((i=i+1))
     done
 
-
-    if [[ "$2" -ne "1" ]]; then
-        touch $1
-    else
-        echo "[Bashbox] >>>>> No lock file option $1"
-    fi
+    touch $1
 }
 
-checking_lock "$lock_1" "0"
-checking_lock "$lock_2" "0"
-checking_lock "$lock_3" "0"
-checking_lock "$lock_4" "1"
+checking_lock "$lock_1"
+checking_lock "$lock_2"
+checking_lock "$lock_3"
+checking_lock "$lock_4"
 
 echo
 echo
