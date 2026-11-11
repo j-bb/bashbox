@@ -1,10 +1,16 @@
 # bashbox
 A set of bash tools and helping scripts.
 
-## install
+## First time install
 ```bash
 mkdir -p ~/bashbox && cd ~/bashbox && curl -fsSL https://github.com/j-bb/bashbox/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1
 ```  
+
+## Update bashbox after installation
+```bash
+bashbox-update.sh
+```
+This will add new files from git, replace modified files from git and preserve any new local files.
 
 ## Helping scripts
 The goal is to keep here some scripts used daily, to launch it quickly and efficiently.  
