@@ -1,6 +1,11 @@
 # bashbox
 A set of bash tools and helping scripts.
 
+## install
+```bash
+mkdir -p ~/bashbox && cd ~/bashbox && curl -fsSL https://github.com/j-bb/bashbox/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1
+```  
+
 ## Helping scripts
 The goal is to keep here some scripts used daily, to launch it quickly and efficiently.  
 Also, one goal is to automate some configuration I had to do on every new installation.  
