@@ -29,6 +29,9 @@ if (( $EUID != 0 )); then
     exit 1
 fi
 
+# Fix retention for snap. Default is 3 : too much.
+snap set system refresh.retain=2
+
 echo -e -n "[Bashbox] updating \033[33m"
 date
 echo -e "\033[0m"
@@ -38,11 +41,40 @@ lock_2="/var/cache/apt/archives/lock"
 lock_3="/var/lib/apt/lists/lock"
 lock_4="/var/lib/dpkg/lock-frontend"
 
+function check_ubuntu_upgrade() {
+    echo
+    echo -e "[Bashbox] >>>>> Ubuntu - \033[33mCheck new Ubuntu version (fast)\033[0m"
+    echo
+
+    local CURRENT LATEST URL
+
+    # Version actuelle
+    CURRENT=$(lsb_release -rs)
+
+    # Fichier officiel meta-release
+    URL="https://changelogs.ubuntu.com/meta-release"
+
+    # Récupère la dernière version listée
+    LATEST=$(wget -qO- "$URL" | \
+        grep -m1 "Version:" | \
+        awk '{print $2}')
+
+    echo "Current Ubuntu version : $CURRENT"
+    echo "Latest Ubuntu version  : $LATEST"
+
+    if dpkg --compare-versions "$LATEST" gt "$CURRENT"; then
+        echo -e "👉 A newer release is available: \033[32m$LATEST\033[0m"
+    else
+        echo -e "✅ You are on the latest release."
+    fi
+}
+
 function remove_lock() {
-    rm -rf "$lock_1"
-    rm -rf "$lock_2"
-    rm -rf "$lock_3"
-    rm -rf "$lock_4"
+##    rm -rf "$lock_1"
+##    rm -rf "$lock_2"
+##    rm -rf "$lock_3"
+##    rm -rf "$lock_4"
+    echo
 }
 
 # trap ctrl-c and call ctrl_c()
@@ -71,7 +103,7 @@ checking_lock() {
         ((i=i+1))
     done
 
-    touch $1
+##    touch $1
 }
 
 checking_lock "$lock_1"
@@ -96,6 +128,7 @@ echo
 echo
 echo -e "[Bashbox] >>>>> apt - \033[33mauto-clean\033[0m"
 echo
+apt -y clean
 apt -y auto-clean
 
 echo
@@ -114,10 +147,50 @@ apt full-upgrade
 
 echo
 echo
-echo -e "[Bashbox] >>>>> snap - \033[33mrefresh, version\033[0m"
+echo -e "[Bashbox] >>>>> snap - \033[33mRestart snap\033[0m"
+echo
+# Force snapd to re-check the store
+systemctl restart snapd
+sleep 1
+
+echo
+echo
+echo -e "[Bashbox] >>>>> snap - \033[33mChecking updates from store\033[0m"
+echo
+snap refresh --list || true
+
+echo
+echo
+echo -e "[Bashbox] >>>>> snap - \033[33mForcing store refresh\033[0m"
 echo
 snap refresh
+
+echo
+echo
+echo -e "[Bashbox] >>>>> snap - \033[33mListing again after refresh\033[0m"
+echo
+snap refresh --list
+
+echo
+echo
+echo -e "[Bashbox] >>>>> snap - \033[33mVersion\033[0m"
+echo
 snap version
+
+
+if [ -f /var/run/reboot-required ]; then
+    echo
+    echo
+    ## echo -e "[Bashbox] >>>>> Ubuntu - \033[33mCheck reboot: 🚨 reboot needed.\033[0m"
+    echo -e "[Bashbox] >>>>> Ubuntu - \033[33mCheck reboot: 🚨 \033[1;97mreboot needed.\033[0m"
+    echo
+    # notify-send "Reboot needed"
+else
+    echo
+    echo
+    echo -e "[Bashbox] >>>>> Ubuntu - \033[33mCheck reboot: \033[32mnot needed.\033[0m"
+    echo
+fi
 
 
 echo
@@ -144,6 +217,7 @@ echo
 echo
 echo -e "[Bashbox] >>>>> Ubuntu - \033[33mCheck new Ubuntu version\033[0m"
 echo
-do-release-upgrade -c
+##do-release-upgrade -c
+check_ubuntu_upgrade
 
 remove_lock
